@@ -72,9 +72,9 @@ class LimitOrderAgent(PriceListener):
         :param limit: limit at which to buy or sell
         :return: None
         """
-        order_type = None
+        order_type = OrderType(1)
         if buy:
-            order_type = 'buy'
+            order_type = OrderType.BUY
         else:
-            order_type = 'sell'
+            order_type = OrderType.SELL
         self.orders_to_fill.append({'order_type': order_type, 'product_id': product_id, 'amount': amount, 'limit': limit})
