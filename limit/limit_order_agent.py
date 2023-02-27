@@ -35,9 +35,13 @@ class LimitOrderAgent(PriceListener):
         """
         if product_id == self.interested_pid:
             if len(self.orders_to_fill) == 0:
-                self.add_order(buy_or_sell=True, product_id=product_id, amount=self.shares_to_purchase,
+                # Placing buy and sell order pair only if there are no orders left to fulfill.
+                # This behaviour is assumed since there is no restriction on how many orders are to be placed and when.
+                # It can be changed if there are more restrictions in place such as
+                # maximum number of orders to place, cooldown period between orders, etc.
+                self.add_order(buy=True, product_id=product_id, amount=self.shares_to_purchase,
                                limit=self.limiting_price)
-                self.add_order(buy_or_sell=False, product_id=product_id, amount=self.shares_to_purchase,
+                self.add_order(buy=False, product_id=product_id, amount=self.shares_to_purchase,
                                limit=self.limiting_price)
 
             if self.orders_to_fill[0]['order_type'] == OrderType.BUY and price < self.orders_to_fill[0]['limit']:
@@ -57,18 +61,19 @@ class LimitOrderAgent(PriceListener):
                     print('Could not complete sell order')
                     return False
             return True
+        return False
 
-    def add_order(self, buy_or_sell: bool, product_id: str, amount: int, limit: float):
+    def add_order(self, buy: bool, product_id: str, amount: int, limit: float):
         """
         Places a buy or a sell order.
-        :param buy_or_sell: Boolean flag which buys shares if set to True and sells if set to False.
+        :param buy: Boolean flag which buys shares if set to True and sells if set to False.
         :param product_id: id of product on which limiting order is placed
         :param amount: Number of shares to buy or sell
         :param limit: limit at which to buy or sell
         :return: None
         """
         order_type = None
-        if buy_or_sell:
+        if buy:
             order_type = 'buy'
         else:
             order_type = 'sell'
