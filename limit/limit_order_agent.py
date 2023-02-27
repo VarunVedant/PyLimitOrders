@@ -24,11 +24,6 @@ class LimitOrderAgent(PriceListener):
         """
         Invoked on Market data change. Creates a new buy/sell order and executes buy or sell of shares
         by comparing market price against limiting price.
-        Note:- Creation of limiting orders and execution of held orders should ideally be done in a separate method.
-        This will ensure on-price_tick only updates a class variable with current market price.
-        The separate method will run in parallel and complete the orders when the price meets limiting conditions.
-        This is currently not done here as this will require
-        creation of threads in a module separate from LimitOrderAgent.
         :param product_id: id of product that has price change
         :param price: the current market price of the product
         :return: Returns a boolean status with success=True & failure=False
