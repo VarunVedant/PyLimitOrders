@@ -1,16 +1,20 @@
 from enum import Enum
 from trading_framework.execution_client import ExecutionClient, ExecutionException
 from trading_framework.price_listener import PriceListener
+import logging
+
+logger = logging.getLogger()
+
 
 class OrderType(Enum):
     BUY = 1
     SELL = 2
 
-class LimitOrderAgent(PriceListener):
 
+class LimitOrderAgent(PriceListener):
     def __init__(self, execution_client: ExecutionClient) -> None:
         """
-
+        Initialize object with info needed for creating limit order and list of orders.
         :param execution_client: can be used to buy or sell - see ExecutionClient protocol definition
         """
         super().__init__()
@@ -34,26 +38,40 @@ class LimitOrderAgent(PriceListener):
                 # This behaviour is assumed since there is no restriction on how many orders are to be placed and when.
                 # It can be changed if there are more restrictions in place such as
                 # maximum number of orders to place, cooldown period between orders, etc.
-                self.add_order(buy=True, product_id=product_id, amount=self.shares_to_purchase,
-                               limit=self.limiting_price)
-                self.add_order(buy=False, product_id=product_id, amount=self.shares_to_purchase,
-                               limit=self.limiting_price)
+                self.add_order(
+                    buy=True,
+                    product_id=product_id,
+                    amount=self.shares_to_purchase,
+                    limit=self.limiting_price,
+                )
+                self.add_order(
+                    buy=False,
+                    product_id=product_id,
+                    amount=self.shares_to_purchase,
+                    limit=self.limiting_price,
+                )
 
-            if self.orders_to_fill[0]['order_type'] == OrderType.BUY and price < self.orders_to_fill[0]['limit']:
-                amount = self.orders_to_fill[0]['amount']
+            if (
+                self.orders_to_fill[0]["order_type"] == OrderType.BUY
+                and price < self.orders_to_fill[0]["limit"]
+            ):
+                amount = self.orders_to_fill[0]["amount"]
                 try:
                     self.execution_client.buy(product_id=product_id, amount=amount)
                     self.orders_to_fill.pop(0)
                 except ExecutionException:
-                    print('Could not complete buy order')
+                    logger.error("Could not complete buy order")
                     return False
-            elif self.orders_to_fill[0]['order_type'] == OrderType.SELL and price >= self.orders_to_fill[0]['limit']:
-                amount = self.orders_to_fill[0]['amount']
+            elif (
+                self.orders_to_fill[0]["order_type"] == OrderType.SELL
+                and price >= self.orders_to_fill[0]["limit"]
+            ):
+                amount = self.orders_to_fill[0]["amount"]
                 try:
                     self.execution_client.sell(product_id=product_id, amount=amount)
                     self.orders_to_fill.pop(0)
                 except ExecutionException:
-                    print('Could not complete sell order')
+                    logger.error("Could not complete sell order")
                     return False
             return True
         return False
@@ -72,4 +90,11 @@ class LimitOrderAgent(PriceListener):
             order_type = OrderType.BUY
         else:
             order_type = OrderType.SELL
-        self.orders_to_fill.append({'order_type': order_type, 'product_id': product_id, 'amount': amount, 'limit': limit})
+        self.orders_to_fill.append(
+            {
+                "order_type": order_type,
+                "product_id": product_id,
+                "amount": amount,
+                "limit": limit,
+            }
+        )
