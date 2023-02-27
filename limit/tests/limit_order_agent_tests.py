@@ -74,5 +74,5 @@ class LimitOrderAgentTest(unittest.TestCase):
     def test_on_price_tick_non_IBM(self):
         execution_client_mock = Mock(ExecutionClient)
         agent = LimitOrderAgent(execution_client=execution_client_mock)
-        agent.on_price_tick("Lorem", 99)
+        self.assertFalse(agent.on_price_tick("Lorem", 99))
         self.assertEqual(len(agent.orders_to_fill), 0)
